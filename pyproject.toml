@@ -10,6 +10,9 @@ python = "^3.9"
 fastapi = "^0.110.0"
 sqlalchemy = "^2.0.29"
 python-multipart = "^0.0.9"
+requests = "^2.31.0"
+cryptography = "^42.0.5"
+python-dotenv = "^1.0.1"
 
 
 [build-system]
