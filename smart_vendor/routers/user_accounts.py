@@ -1,12 +1,14 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
+
 from sqlalchemy.orm import Session
 from starlette import status
 
 from smart_vendor import schemas
 from smart_vendor.db_services.user_accounts import \
-    db_create_user_account, db_get_user_accounts, db_get_user_account, db_update_user_account
+    db_create_user_account, db_get_user_accounts, db_get_user_account, db_update_user_account, db_patch_user_account, \
+    db_delete_user_account
 from smart_vendor.dependancies import get_db_session
 
 router = APIRouter()
@@ -32,7 +34,7 @@ async def read_user_accounts(db: Session = Depends(get_db_session)):
     return accounts
 
 
-@router.put("/users/accounts/{id}/update", response_model=schemas.UserAccountRead)
+@router.put("/users/accounts/{id}/", response_model=schemas.UserAccountRead)
 async def update_user_account(id: str, account: schemas.UserAccountUpdate, db: Session = Depends(get_db_session)):
     res = await db_update_user_account(
         db=db,
@@ -42,3 +44,26 @@ async def update_user_account(id: str, account: schemas.UserAccountUpdate, db: S
     return res
 
 
+@router.patch("/users/accounts/{id}/", response_model=schemas.UserAccountRead)
+async def update_user_account(id: str, account: schemas.UserAccountPatch, db: Session = Depends(get_db_session)):
+    res = await db_patch_user_account(
+        db=db,
+        id=id,
+        user_account=account
+    )
+    return res
+
+
+@router.delete("/users/account/{id}")
+async def delete_user_account(id: str, response: Response, db: Session = Depends(get_db_session)):
+    deleted = await db_delete_user_account(db, id)
+    if deleted is not None:
+        response.status_code = status.HTTP_204_NO_CONTENT
+        return {
+            'detail': 'Account deleted'
+        }
+    else:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {
+            'detail': 'Could not find matching account'
+        }
