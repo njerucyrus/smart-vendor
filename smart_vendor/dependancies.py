@@ -1,9 +1,9 @@
 from smart_vendor.database import SessionLocal
 
 
-def get_db():
-    db = SessionLocal()
+def get_db_session():
+    session = SessionLocal()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()

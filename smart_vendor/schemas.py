@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, Union
 
 from pydantic import BaseModel, ConfigDict
@@ -28,3 +29,35 @@ class UserPatch(BaseModel):
 class UserRead(UserBase):
     model_config = ConfigDict(from_attributes=True)
     id: str
+
+
+class UserAccountBase(BaseModel):
+    user_id: str
+    available_balance: float
+    user: Union[UserBase, None] = None
+    location: Union[str, None] = None
+    created_at: Union[datetime, None] = None
+    updated_at: Union[datetime, None] = None
+
+
+class UserAccountCreate(BaseModel):
+    user_id: str
+    available_balance: float
+    location: Union[str, None] = None
+
+
+class UserAccountUpdate(BaseModel):
+    available_balance: Union[float, None] = None
+    location: Union[str, None] = None
+
+
+class UserAccountRead(UserAccountBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+
+
+class UserAccountPatch(BaseModel):
+    available_balance: Union[float, None] = None
+    location: Union[str, None] = None
+
+
