@@ -1,10 +1,10 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi_pagination import Page
 from sqlalchemy.orm import Session
 
 from smart_vendor import schemas
-from smart_vendor.db_services.users import db_create_user, db_get_user, db_update_user, db_delete_user, db_patch_user, db_get_users
+from smart_vendor.db_services.users import db_create_user, db_get_user, db_update_user, db_delete_user, db_patch_user, \
+    db_get_users
 from smart_vendor.dependancies import get_db_session
 
 router = APIRouter()
@@ -24,8 +24,8 @@ async def read_user(user_id: str, db: Session = Depends(get_db_session)):
     return db_user
 
 
-@router.get("/users/", response_model=List[schemas.UserRead])
-async def list_users(db: Session = Depends(get_db_session)):
+@router.get("/users/")
+async def list_users(db: Session = Depends(get_db_session)) -> Page[schemas.UserRead]:
     users = await db_get_users(db)
     return users
 

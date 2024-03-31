@@ -39,7 +39,7 @@ class TopUp(Base):
     receipt_no = Column(String, nullable=True)
     phone_number = Column(String(20), nullable=True)
     amount = Column(Numeric(precision=9, scale=2))
-    status = Column(Enum('pending', 'success', 'failed', name='status_enum'))
+    status = Column(Enum('pending', 'success', 'failed', name='status_enum'), default='pending')
     date = Column(DateTime, default=datetime.datetime.utcnow)
 
 

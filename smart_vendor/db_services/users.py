@@ -1,3 +1,4 @@
+from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from smart_vendor import models, schemas
@@ -16,9 +17,7 @@ async def db_get_user(db: Session, user_id: str):
 
 
 async def db_get_users(db: Session):
-    stmt = select(models.User)
-    result = db.execute(stmt)
-    return result.scalars().all()
+    return paginate(db, select(models.User))
 
 
 async def db_update_user(db: Session, user_id: str, user_update: schemas.UserUpdate):

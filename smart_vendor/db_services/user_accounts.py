@@ -1,3 +1,5 @@
+from fastapi_pagination.ext.sqlalchemy import paginate
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from smart_vendor import schemas, models
 
@@ -37,7 +39,7 @@ async def db_get_user_account(db:Session, id: str):
 
 
 async def db_get_user_accounts(db:Session):
-    return db.query(models.UserAccount).all()
+    return paginate(db, select(models.UserAccount))
 
 
 async def db_delete_user_account(db:Session, id:str):

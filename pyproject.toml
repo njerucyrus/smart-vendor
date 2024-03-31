@@ -16,6 +16,7 @@ python-dotenv = "^1.0.1"
 uvicorn = "^0.29.0"
 psycopg2-binary = "^2.9.9"
 alembic = "^1.13.1"
+fastapi-pagination = "^0.12.21"
 
 
 [build-system]

@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi_pagination import Page
 
 from sqlalchemy.orm import Session
 from starlette import status
@@ -28,8 +29,8 @@ async def read_user_account(id: str, db: Session = Depends(get_db_session)):
     return account
 
 
-@router.get("/users/accounts/", response_model=List[schemas.UserAccountRead])
-async def read_user_accounts(db: Session = Depends(get_db_session)):
+@router.get("/users/accounts/")
+async def read_user_accounts(db: Session = Depends(get_db_session)) -> Page[schemas.UserAccountRead]:
     accounts = await db_get_user_accounts(db)
     return accounts
 
