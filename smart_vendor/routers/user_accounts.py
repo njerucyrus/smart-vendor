@@ -1,7 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Response
-from fastapi_pagination import Page
+from fastapi_pagination.links import Page
 
 from sqlalchemy.orm import Session
 from starlette import status
@@ -22,7 +22,7 @@ async def create_user_account(account: schemas.UserAccountCreate, db: Session = 
 
 
 @router.get("/users/accounts/{id}/", response_model=schemas.UserAccountRead)
-async def read_user_account(id: str, db: Session = Depends(get_db_session)):
+async def user_account_detail(id: str, db: Session = Depends(get_db_session)):
     account = await db_get_user_account(db, id)
     if not account:
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Account not found')
@@ -46,7 +46,8 @@ async def update_user_account(id: str, account: schemas.UserAccountUpdate, db: S
 
 
 @router.patch("/users/accounts/{id}/", response_model=schemas.UserAccountRead)
-async def update_user_account(id: str, account: schemas.UserAccountPatch, db: Session = Depends(get_db_session)):
+async def partial_update_user_account(id: str, account: schemas.UserAccountPatch,
+                                      db: Session = Depends(get_db_session)):
     res = await db_patch_user_account(
         db=db,
         id=id,

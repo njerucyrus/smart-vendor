@@ -73,25 +73,27 @@ class StatusEnum(str, Enum):
     failed = 'failed'
 
 
-class TopUpBase(BaseModel):
+class PaymentBase(BaseModel):
     account_id: str
+    account: Union[UserAccountRead, None] = None
     txn_id: str
     receipt_no: Union[str, None] = None
     amount: float
     phone_number: str
     status: StatusEnum
+    date: Union[datetime, None] = None
 
 
-class TopUpCreate(TopUpBase):
+class PaymentCreate(PaymentBase):
     pass
 
 
-class TopUpRead(TopUpBase):
+class PaymentRead(PaymentBase):
     model_config = ConfigDict(from_attributes=True)
     id: str
 
 
-class TopUpUpdate(BaseModel):
+class PaymentUpdate(BaseModel):
     account_id: Union[str, None] = None
     txn_id: str
     receipt_no: Union[str, None] = None
@@ -99,3 +101,7 @@ class TopUpUpdate(BaseModel):
     phone_number: Union[str, None] = None
     status: Union[StatusEnum, None] = None
 
+
+class STKPushRequest(BaseModel):
+    phone_number: str
+    amount: int

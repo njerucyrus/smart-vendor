@@ -24,17 +24,17 @@ class UserAccount(Base):
     user_id = Column(String, ForeignKey("users.id"))
     available_balance = Column(Numeric(precision=9, scale=2))
     user = relationship('User', back_populates='accounts')
-    top_ups = relationship('TopUp', back_populates='account')
+    payments = relationship('Payment', back_populates='account')
     location = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 
-class TopUp(Base):
-    __tablename__ = 'topups'
+class Payment(Base):
+    __tablename__ = 'payments'
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()).replace('-', ''))
     account_id = Column(String, ForeignKey("user_accounts.id"))
-    account = relationship('UserAccount', back_populates='top_ups')
+    account = relationship('UserAccount', back_populates='payments')
     txn_id = Column(String, unique=True)
     receipt_no = Column(String, nullable=True)
     phone_number = Column(String(20), nullable=True)
