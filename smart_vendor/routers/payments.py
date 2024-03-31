@@ -57,5 +57,22 @@ async def delete_payment(txn_id: str, response: Response, db: Session = Depends(
 
 
 @router.post("/payments/send-stk-push/")
-async def send_stk_push(body: schemas.STKPushRequest, response:Response):
+async def send_stk_push(body: schemas.STKPushRequest, response: Response):
     return body
+
+
+@router.post("/payments/callback/")
+async def payment_callback(data: schemas.StkResponseBody, response:Response):
+    stk_callback = data.Body.stkCallback
+
+    processed_data = {
+        "CheckoutRequestId": stk_callback.CheckoutRequestID,
+        "ResultCode": stk_callback.ResultCode,
+        "ResultDesk": stk_callback.ResultDesc,
+        "MpesaReceiptNumber": next(
+            (item.Value for item in stk_callback.CallbackMetadata.Item if item.Name == "MpesaReceiptNumber"), None),
+        "PhoneNumber": next((item.Value for item in stk_callback.CallbackMetadata.Item if item.Name == "PhoneNumber"),
+                            None),
+        "Amount": next((item.Value for item in stk_callback.CallbackMetadata.Item if item.Name == "Amount"), None)
+    }
+    return processed_data
