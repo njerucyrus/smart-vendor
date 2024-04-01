@@ -23,7 +23,9 @@ async def db_create_user_account(db: Session, user_account: schemas.UserAccountC
 
 
 async def db_update_user_account(db: Session, card_id: str, user_account: schemas.UserAccountUpdate):
-    account = db.query(models.UserAccount).filter(models.UserAccount.user.card_id == card_id).first()
+    account = db.query(models.UserAccount). \
+        join(models.User, models.User.id == models.UserAccount.user_id). \
+        filter(models.User.card_id == card_id).first()
     if account:
         for attr, value in user_account.model_dump().items():
             setattr(account, attr, value)
@@ -34,7 +36,9 @@ async def db_update_user_account(db: Session, card_id: str, user_account: schema
 
 
 async def db_patch_user_account(db: Session, card_id: str, user_account: schemas.UserAccountPatch):
-    account = db.query(models.UserAccount).filter(models.UserAccount.user.card_id == card_id).first()
+    account = db.query(models.UserAccount). \
+        join(models.User, models.User.id == models.UserAccount.user_id). \
+        filter(models.User.card_id == card_id).first()
     if account:
         for attr, value in user_account.model_dump(exclude_unset=True).items():
             setattr(account, attr, value)
@@ -45,7 +49,9 @@ async def db_patch_user_account(db: Session, card_id: str, user_account: schemas
 
 
 async def db_get_user_account(db: Session, card_id: str):
-    return db.query(models.UserAccount).filter(models.UserAccount.user.card_id == card_id).first()
+    return db.query(models.UserAccount). \
+        join(models.User, models.User.id == models.UserAccount.user_id). \
+        filter(models.User.card_id == card_id).first()
 
 
 async def db_get_user_accounts(db: Session):
@@ -53,7 +59,9 @@ async def db_get_user_accounts(db: Session):
 
 
 async def db_delete_user_account(db: Session, card_id: str):
-    account = db.query(models.UserAccount).filter(models.UserAccount.user.card_id == card_id).first()
+    account = db.query(models.UserAccount). \
+        join(models.User, models.User.id == models.UserAccount.user_id). \
+        filter(models.User.card_id == card_id).first()
     if account:
         db.delete(account)
         db.commit()
