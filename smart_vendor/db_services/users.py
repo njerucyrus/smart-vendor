@@ -12,16 +12,16 @@ async def db_create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
-async def db_get_user(db: Session, user_id: str):
-    return db.query(models.User).filter(models.User.id == user_id).first()
+async def db_get_user(db: Session, card_id: str):
+    return db.query(models.User).filter(models.User.card_id == card_id).first()
 
 
 async def db_get_users(db: Session):
     return paginate(db, select(models.User))
 
 
-async def db_update_user(db: Session, user_id: str, user_update: schemas.UserUpdate):
-    db_user =  db.query(models.User).filter(models.User.id == user_id).first()
+async def db_update_user(db: Session, card_id: str, user_update: schemas.UserUpdate):
+    db_user =  db.query(models.User).filter(models.User.card_id == card_id).first()
     if db_user:
         for attr, value in user_update.model_dump().items():
             setattr(db_user, attr, value)
@@ -30,8 +30,8 @@ async def db_update_user(db: Session, user_id: str, user_update: schemas.UserUpd
     return db_user
 
 
-async def db_patch_user(db: Session, user_id: str, user_update: schemas.UserPatch):
-    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+async def db_patch_user(db: Session, card_id: str, user_update: schemas.UserPatch):
+    db_user = db.query(models.User).filter(models.User.card_id == card_id).first()
 
     if db_user:
         for field, value in user_update.model_dump(exclude_unset=True).items():
@@ -42,8 +42,8 @@ async def db_patch_user(db: Session, user_id: str, user_update: schemas.UserPatc
     return db_user
 
 
-async def db_delete_user(db: Session, user_id: str):
-    db_user = db.query(models.User).filter(models.User.id == user_id).first()
+async def db_delete_user(db: Session, card_id: str):
+    db_user = db.query(models.User).filter(models.User.card_id == card_id).first()
     if db_user:
         db.delete(db_user)
         db.commit()

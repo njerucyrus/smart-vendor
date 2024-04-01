@@ -16,9 +16,9 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db_ses
     return db_user
 
 
-@router.get("/users/{user_id}", response_model=schemas.UserRead)
-async def user_detail(user_id: str, db: Session = Depends(get_db_session)):
-    db_user = await db_get_user(db, user_id)
+@router.get("/users/{card_id}/", response_model=schemas.UserRead)
+async def user_detail(card_id: str, db: Session = Depends(get_db_session)):
+    db_user = await db_get_user(db, card_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
@@ -30,25 +30,25 @@ async def list_users(db: Session = Depends(get_db_session)) -> Page[schemas.User
     return users
 
 
-@router.put("/users/{user_id}", response_model=schemas.UserRead)
-async def update_user(user_id: str, user_update: schemas.UserUpdate, db: Session = Depends(get_db_session)):
-    db_user = await db_update_user(db, user_id, user_update)
+@router.put("/users/{card_id}/", response_model=schemas.UserRead)
+async def update_user(card_id: str, user_update: schemas.UserUpdate, db: Session = Depends(get_db_session)):
+    db_user = await db_update_user(db, card_id, user_update)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
 
-@router.patch("/users/{user_id}", response_model=schemas.UserRead)
-async def partial_update_user(user_id: str, user_update: schemas.UserPatch, db: Session = Depends(get_db_session)):
-    db_user = await db_patch_user(db, user_id, user_update)
+@router.patch("/users/{card_id}/", response_model=schemas.UserRead)
+async def partial_update_user(card_id: str, user_update: schemas.UserPatch, db: Session = Depends(get_db_session)):
+    db_user = await db_patch_user(db, card_id, user_update)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
 
-@router.delete("/users/{user_id}", response_model=schemas.UserRead)
-async def delete_user(user_id: str, db: Session = Depends(get_db_session)):
-    db_user = await db_delete_user(db, user_id)
+@router.delete("/users/{card_id}/", response_model=schemas.UserRead)
+async def delete_user(card_id: str, db: Session = Depends(get_db_session)):
+    db_user = await db_delete_user(db, card_id)
     if db_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user

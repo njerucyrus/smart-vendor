@@ -21,9 +21,9 @@ async def create_user_account(account: schemas.UserAccountCreate, db: Session = 
     return account
 
 
-@router.get("/users/accounts/{id}/", response_model=schemas.UserAccountRead)
-async def user_account_detail(id: str, db: Session = Depends(get_db_session)):
-    account = await db_get_user_account(db, id)
+@router.get("/users/accounts/{card_id}/", response_model=schemas.UserAccountRead)
+async def user_account_detail(card_id: str, db: Session = Depends(get_db_session)):
+    account = await db_get_user_account(db, card_id)
     if not account:
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Account not found')
     return account
@@ -35,30 +35,30 @@ async def read_user_accounts(db: Session = Depends(get_db_session)) -> Page[sche
     return accounts
 
 
-@router.put("/users/accounts/{id}/", response_model=schemas.UserAccountRead)
-async def update_user_account(id: str, account: schemas.UserAccountUpdate, db: Session = Depends(get_db_session)):
+@router.put("/users/accounts/{card_id}/", response_model=schemas.UserAccountRead)
+async def update_user_account(card_id: str, account: schemas.UserAccountUpdate, db: Session = Depends(get_db_session)):
     res = await db_update_user_account(
         db=db,
-        id=id,
+        card_id=card_id,
         user_account=account
     )
     return res
 
 
-@router.patch("/users/accounts/{id}/", response_model=schemas.UserAccountRead)
-async def partial_update_user_account(id: str, account: schemas.UserAccountPatch,
+@router.patch("/users/accounts/{card_id}/", response_model=schemas.UserAccountRead)
+async def partial_update_user_account(card_id: str, account: schemas.UserAccountPatch,
                                       db: Session = Depends(get_db_session)):
     res = await db_patch_user_account(
         db=db,
-        id=id,
+        card_id=card_id,
         user_account=account
     )
     return res
 
 
-@router.delete("/users/account/{id}")
-async def delete_user_account(id: str, response: Response, db: Session = Depends(get_db_session)):
-    deleted = await db_delete_user_account(db, id)
+@router.delete("/users/account/{card_id}")
+async def delete_user_account(card_id: str, response: Response, db: Session = Depends(get_db_session)):
+    deleted = await db_delete_user_account(db, card_id)
     if deleted is not None:
         response.status_code = status.HTTP_204_NO_CONTENT
         return {

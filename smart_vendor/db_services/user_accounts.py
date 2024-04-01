@@ -2,18 +2,28 @@ from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from smart_vendor import schemas, models
+from smart_vendor.db_services.users import db_get_user
 
 
 async def db_create_user_account(db: Session, user_account: schemas.UserAccountCreate):
-    account = models.UserAccount(**user_account.model_dump())
-    db.add(account)
-    db.commit()
-    db.refresh(account)
-    return account
+    user = await db_get_user(db, user_account.card_id)
+    if user:
+        payload = {
+            'user_id': user.id,
+            'available_balance': user_account.available_balance,
+            'location': user_account.location
+        }
+        account = models.UserAccount(**payload)
+        db.add(account)
+        db.commit()
+        db.refresh(account)
+        return account
+    else:
+        return None
 
 
-async def db_update_user_account(db: Session, id: str, user_account: schemas.UserAccountUpdate):
-    account = db.query(models.UserAccount).filter(models.UserAccount.id == id).first()
+async def db_update_user_account(db: Session, card_id: str, user_account: schemas.UserAccountUpdate):
+    account = db.query(models.UserAccount).filter(models.UserAccount.user.card_id == card_id).first()
     if account:
         for attr, value in user_account.model_dump().items():
             setattr(account, attr, value)
@@ -23,8 +33,8 @@ async def db_update_user_account(db: Session, id: str, user_account: schemas.Use
     return account
 
 
-async def db_patch_user_account(db: Session, id: str, user_account: schemas.UserAccountPatch):
-    account = db.query(models.UserAccount).filter(models.UserAccount.id == id).first()
+async def db_patch_user_account(db: Session, card_id: str, user_account: schemas.UserAccountPatch):
+    account = db.query(models.UserAccount).filter(models.UserAccount.user.card_id == card_id).first()
     if account:
         for attr, value in user_account.model_dump(exclude_unset=True).items():
             setattr(account, attr, value)
@@ -34,16 +44,16 @@ async def db_patch_user_account(db: Session, id: str, user_account: schemas.User
     return account
 
 
-async def db_get_user_account(db:Session, id: str):
-    return db.query(models.UserAccount).filter(models.UserAccount.id == id).first()
+async def db_get_user_account(db: Session, card_id: str):
+    return db.query(models.UserAccount).filter(models.UserAccount.user.card_id == card_id).first()
 
 
-async def db_get_user_accounts(db:Session):
+async def db_get_user_accounts(db: Session):
     return paginate(db, select(models.UserAccount))
 
 
-async def db_delete_user_account(db:Session, id:str):
-    account = db.query(models.UserAccount).filter(models.UserAccount.id == id).first()
+async def db_delete_user_account(db: Session, card_id: str):
+    account = db.query(models.UserAccount).filter(models.UserAccount.user.card_id == card_id).first()
     if account:
         db.delete(account)
         db.commit()

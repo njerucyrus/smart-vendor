@@ -67,7 +67,11 @@ async def delete_payment(txn_id: str, response: Response, db: Session = Depends(
 
 @router.post("/payments/send-stk-push/")
 async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Session = Depends(get_db_session)):
-    account = await db_get_user_account(db, body.account_number)
+    account = await db_get_user_account(
+        db=db,
+        card_id=body.account_number
+    )
+
     if account:
         mpesa_client = MpesaExpress()
         res = mpesa_client.stk_push(
@@ -104,8 +108,6 @@ async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Se
         return {
             'message': 'Invalid account number. Make sure you use your CardID as the account number'
         }
-
-
 
 
 @router.post("/payments/callback/")

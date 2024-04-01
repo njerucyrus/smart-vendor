@@ -47,7 +47,7 @@ class UserAccountBase(BaseModel):
 
 
 class UserAccountCreate(BaseModel):
-    user_id: str
+    card_id: str
     available_balance: float
     location: Union[str, None] = None
 

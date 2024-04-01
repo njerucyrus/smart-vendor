@@ -11,11 +11,11 @@ from smart_vendor.database import Base
 class User(Base):
     __tablename__ = 'users'
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()).replace('-', ''))
-    card_id = Column(String)
+    card_id = Column(String, unique=True)
     name = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
     user_type = Column(Enum('vendor', 'consumer', name='user_type_enum'))
-    accounts = relationship('UserAccount', back_populates='user')
+    account = relationship('UserAccount', back_populates='user')
 
 
 class UserAccount(Base):
@@ -23,7 +23,7 @@ class UserAccount(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()).replace('-', ''))
     user_id = Column(String, ForeignKey("users.id"))
     available_balance = Column(Numeric(precision=9, scale=2))
-    user = relationship('User', back_populates='accounts')
+    user = relationship('User', back_populates='account')
     payments = relationship('Payment', back_populates='account')
     location = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
