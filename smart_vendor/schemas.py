@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, Union, List
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserTypeEnum(str, Enum):
@@ -105,9 +105,10 @@ class PaymentUpdate(BaseModel):
 class STKPushRequest(BaseModel):
     phone_number: str
     amount: int
+    account_number: Union[str, None] = ''
 
 
-# stk push callback data schema
+#  mpesa  data schemas
 
 class Item(BaseModel):
     Name: str
@@ -130,7 +131,15 @@ class Body(BaseModel):
     stkCallback: StkCallback
 
 
-class StkResponseBody(BaseModel):
+class StkPayload(BaseModel):
     Body: Body
+
+
+class StkRequestResponse(BaseModel):
+    merchant_request_id: str = Field(alias="MerchantRequestID")
+    checkout_request_id: str = Field(alias="CheckoutRequestID")
+    response_code: str = Field(alias="ResponseCode")
+    response_description: str = Field(alias="ResponseDescription")
+    customer_message: str = Field(alias="CustomerMessage")
 
 # endof stk push schemas

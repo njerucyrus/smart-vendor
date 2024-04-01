@@ -1,14 +1,23 @@
+import os
+
 from fastapi import APIRouter, Depends, Response, HTTPException
 from fastapi_pagination.links import Page
 from sqlalchemy.orm import Session
 from starlette import status
 
+from mpesa.mpesa_express import MpesaExpress
+from mpesa.utils import PhoneNumberUtils
 from smart_vendor import schemas
 from smart_vendor.db_services.payments import db_create_payment, \
     db_get_payment, db_update_payment, \
     db_list_payments, db_patch_payment, \
     db_delete_payment
+from smart_vendor.db_services.user_accounts import db_get_user_account
 from smart_vendor.dependancies import get_db_session
+from dotenv import load_dotenv
+
+load_dotenv()
+api_base_url = os.environ.get('API_BASE_URL')
 
 router = APIRouter()
 
@@ -57,13 +66,51 @@ async def delete_payment(txn_id: str, response: Response, db: Session = Depends(
 
 
 @router.post("/payments/send-stk-push/")
-async def send_stk_push(body: schemas.STKPushRequest, response: Response):
-    return body
+async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Session = Depends(get_db_session)):
+    account = await db_get_user_account(db, body.account_number)
+    if account:
+        mpesa_client = MpesaExpress()
+        res = mpesa_client.stk_push(
+            amount=body.amount,
+            phone_number=PhoneNumberUtils.clean(body.phone_number),
+            description="Top up",
+            reference_code=body.account_number,
+            callback_url=f"{api_base_url}/payments/callback/"
+        )
+        data = schemas.StkRequestResponse(**dict(res))
+        if data.response_code == "0":
+            # request sent successfully. we create a new payment entry
+            record_payload = {
+                'account_id': body.account_number,
+                'txn_id': data.checkout_request_id,
+                'amount': round(float(body.amount), 2)
+            }
+            payment = schemas.PaymentCreate(
+                **record_payload
+            )
+            payment_record = await db_create_payment(db, payment)
+            response.status_code = status.HTTP_200_OK
+            return {
+                'message': data.customer_message,
+                'txn_id': payment_record.txn_id
+            }
+        else:
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {
+                'message': data.customer_message
+            }
+    else:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {
+            'message': 'Invalid account number. Make sure you use your CardID as the account number'
+        }
+
+
 
 
 @router.post("/payments/callback/")
-async def payment_callback(data: schemas.StkResponseBody, response:Response):
-    stk_callback = data.Body.stkCallback
+async def payment_callback(payload: schemas.StkPayload, response: Response):
+    stk_callback = payload.Body.stkCallback
 
     processed_data = {
         "CheckoutRequestId": stk_callback.CheckoutRequestID,
