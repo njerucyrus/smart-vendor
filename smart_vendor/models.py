@@ -15,13 +15,13 @@ class User(Base):
     name = Column(String, nullable=True)
     phone_number = Column(String, nullable=True)
     user_type = Column(Enum('vendor', 'consumer', name='user_type_enum'))
-    account = relationship('UserAccount', back_populates='user')
+    account = relationship('UserAccount', uselist=False, back_populates='user')
 
 
 class UserAccount(Base):
     __tablename__ = 'user_accounts'
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()).replace('-', ''))
-    user_id = Column(String, ForeignKey("users.id"))
+    user_id = Column(String, ForeignKey("users.id"), unique=True)
     available_balance = Column(Numeric(precision=9, scale=2))
     user = relationship('User', back_populates='account')
     payments = relationship('Payment', back_populates='account')

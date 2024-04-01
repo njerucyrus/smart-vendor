@@ -15,10 +15,19 @@ from smart_vendor.dependancies import get_db_session
 router = APIRouter()
 
 
-@router.post("/users/accounts/", response_model=schemas.UserAccountRead)
-async def create_user_account(account: schemas.UserAccountCreate, db: Session = Depends(get_db_session)):
-    account = await db_create_user_account(db, account)
-    return account
+@router.post("/users/accounts/")
+async def create_user_account(account: schemas.UserAccountCreate, response: Response,
+                              db: Session = Depends(get_db_session)):
+    try:
+        account = await db_create_user_account(db, account)
+        if account:
+            return account
+        else:
+            response.status_code = status.HTTP_404_NOT_FOUND
+            return {'message': f'Could not find any user associated to the card id provided'}
+    except Exception as e:
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {'message': f'Invalid card_id'}
 
 
 @router.get("/users/accounts/{card_id}/", response_model=schemas.UserAccountRead)
