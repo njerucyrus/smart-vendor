@@ -6,7 +6,7 @@ from smart_vendor.database import Base, engine
 from smart_vendor.routers.users import router as users_router
 from smart_vendor.routers.user_accounts import router as user_accounts_router
 from smart_vendor.routers.payments import router as payments_router
-app = FastAPI(title="Smart Water Vendor APIs", version='v1.0')
+app = FastAPI(title="Smart Vendor APIs", version='v1.0')
 
 
 @app.get("/", name='Docs', include_in_schema=False)

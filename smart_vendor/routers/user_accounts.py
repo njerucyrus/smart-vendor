@@ -27,7 +27,7 @@ async def create_user_account(account: schemas.UserAccountCreate, response: Resp
             return {'message': f'Could not find any user associated to the card id provided'}
     except Exception as e:
         response.status_code = status.HTTP_400_BAD_REQUEST
-        return {'message': f'Invalid card_id'}
+        return {'message': f'Invalid card_id: {e}'}
 
 
 @router.get("/users/accounts/{card_id}/", response_model=schemas.UserAccountRead)

@@ -1,4 +1,5 @@
 import os
+from pprint import pprint
 
 from fastapi import APIRouter, Depends, Response, HTTPException
 from fastapi_pagination.links import Page
@@ -73,6 +74,7 @@ async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Se
     )
 
     if account:
+        pprint(f"USER ACCOUNT ID: {account.id}")
         mpesa_client = MpesaExpress()
         res = mpesa_client.stk_push(
             amount=body.amount,
@@ -85,9 +87,11 @@ async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Se
         if data.response_code == "0":
             # request sent successfully. we create a new payment entry
             record_payload = {
-                'account_id': body.account_number,
+                'account_id': account.id,
                 'txn_id': data.checkout_request_id,
-                'amount': round(float(body.amount), 2)
+                'amount': round(float(body.amount), 2),
+                'phone_number': PhoneNumberUtils.clean(body.phone_number),
+                'status': 'pending'
             }
             payment = schemas.PaymentCreate(
                 **record_payload

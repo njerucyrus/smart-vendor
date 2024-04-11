@@ -74,7 +74,7 @@ class StatusEnum(str, Enum):
 
 
 class PaymentBase(BaseModel):
-    account_id: str
+    account_id: Union[str, None]
     account: Union[UserAccountRead, None] = None
     txn_id: str
     receipt_no: Union[str, None] = None
