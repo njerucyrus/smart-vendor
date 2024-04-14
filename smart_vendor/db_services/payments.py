@@ -1,11 +1,16 @@
-from sqlalchemy import select
+from sqlalchemy import select, desc
 from sqlalchemy.orm import Session
 from smart_vendor import schemas, models
 from fastapi_pagination.ext.sqlalchemy import paginate
 
 
 async def db_create_payment(db: Session, payment: schemas.PaymentCreate):
-    instance = models.Payment(**payment.model_dump())
+    data_dict = payment.model_dump()
+    account_id = data_dict.pop('account_id')
+    # remove account keywork from the data_dict
+    data_dict.pop('account')
+    account = db.query(models.UserAccount).filter(models.UserAccount.id == account_id).first()
+    instance = models.Payment(account=account, **data_dict)
     db.add(instance)
     db.commit()
     db.refresh(instance)
@@ -38,7 +43,7 @@ async def db_patch_payment(db: Session, txn_id: str, payment: schemas.PaymentUpd
 
 
 async def db_list_payments(db: Session):
-    return paginate(db, select(models.Payment).order_by(models.Payment.date))
+    return paginate(db, select(models.Payment).order_by(desc(models.Payment.date)))
 
 
 async def db_delete_payment(db: Session, txn_id: str):

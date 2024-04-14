@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -112,19 +112,19 @@ class STKPushRequest(BaseModel):
 
 class Item(BaseModel):
     Name: str
-    Value: Optional[str]
+    Value: Optional[Any]
 
 
 class CallbackMetadata(BaseModel):
-    Item: List[Item]
+    Item: Union[List[Item], None]
 
 
 class StkCallback(BaseModel):
     MerchantRequestID: str
     CheckoutRequestID: str
-    ResultCode: int
-    ResultDesc: str
-    CallbackMetadata: CallbackMetadata
+    ResultCode: Any
+    ResultDesc: Any
+    CallbackMetadata: Union[CallbackMetadata, None]
 
 
 class Body(BaseModel):

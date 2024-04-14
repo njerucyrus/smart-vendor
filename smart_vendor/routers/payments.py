@@ -1,3 +1,4 @@
+import json
 import os
 from pprint import pprint
 
@@ -74,19 +75,18 @@ async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Se
     )
 
     if account:
-        pprint(f"USER ACCOUNT ID: {account.id}")
         mpesa_client = MpesaExpress()
         res = mpesa_client.stk_push(
             amount=body.amount,
             phone_number=PhoneNumberUtils.clean(body.phone_number),
             description="Top up",
             reference_code=body.account_number,
-            callback_url=f"{api_base_url}/payments/callback/"
+            callback_url=f"{api_base_url}/payments/test-callback/"
         )
         data = schemas.StkRequestResponse(**dict(res))
         if data.response_code == "0":
             # request sent successfully. we create a new payment entry
-            record_payload = {
+            payment_payload = {
                 'account_id': account.id,
                 'txn_id': data.checkout_request_id,
                 'amount': round(float(body.amount), 2),
@@ -94,7 +94,7 @@ async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Se
                 'status': 'pending'
             }
             payment = schemas.PaymentCreate(
-                **record_payload
+                **payment_payload
             )
             payment_record = await db_create_payment(db, payment)
             response.status_code = status.HTTP_200_OK
@@ -115,17 +115,58 @@ async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Se
 
 
 @router.post("/payments/callback/")
-async def payment_callback(payload: schemas.StkPayload, response: Response):
+async def payment_callback(payload: schemas.StkPayload, response: Response, db:Session = Depends(get_db_session)):
     stk_callback = payload.Body.stkCallback
+    with(open('callback.json', 'w+')) as f:
+        f.write(json.dumps(payload.model_dump()))
+    if str(stk_callback.ResultCode) == '0':
 
-    processed_data = {
-        "CheckoutRequestId": stk_callback.CheckoutRequestID,
-        "ResultCode": stk_callback.ResultCode,
-        "ResultDesk": stk_callback.ResultDesc,
-        "MpesaReceiptNumber": next(
-            (item.Value for item in stk_callback.CallbackMetadata.Item if item.Name == "MpesaReceiptNumber"), None),
-        "PhoneNumber": next((item.Value for item in stk_callback.CallbackMetadata.Item if item.Name == "PhoneNumber"),
-                            None),
-        "Amount": next((item.Value for item in stk_callback.CallbackMetadata.Item if item.Name == "Amount"), None)
-    }
+        processed_data = {
+            "CheckoutRequestId": stk_callback.CheckoutRequestID,
+            "ResultCode": stk_callback.ResultCode,
+            "ResultDesk": stk_callback.ResultDesc,
+            "MpesaReceiptNumber": next(
+                (str(item.Value) for item in stk_callback.CallbackMetadata.Item if item.Name == "MpesaReceiptNumber"),
+                None),
+            "PhoneNumber": next(
+                (str(item.Value) for item in stk_callback.CallbackMetadata.Item if item.Name == "PhoneNumber"),
+                None),
+            "Amount": next(
+                (round(float(item.Value), 2) for item in stk_callback.CallbackMetadata.Item if item.Name == "Amount"),
+                None),
+        }
+
+        payload_schema = {
+            'txn_id': str(processed_data.get('CheckoutRequestId')),
+            'amount': processed_data.get('Amount'),
+            'receipt_no': processed_data.get('MpesaReceiptNumber'),
+            'status': 'success'
+
+        }
+        patch_schema = schemas.PaymentUpdate(**payload_schema)
+        txn = await db_patch_payment(
+            db=db,
+            txn_id=str(processed_data.get('CheckoutRequestId')),
+            payment=patch_schema
+
+        )
+        response.status_code = status.HTTP_200_OK
+        return txn
+
+    else:
+        # payment failed
+        response.status_code = status.HTTP_400_BAD_REQUEST
+        return {
+            'message': stk_callback.ResultDesc,
+            'status': 'failed'
+        }
+
     return processed_data
+
+
+@router.post("/payments/test-callback/")
+async def test_callback(data:dict):
+    with(open('test_callback.json', 'w+')) as f:
+        f.write(json.dumps(data))
+
+    return  {'status': 'completed'}

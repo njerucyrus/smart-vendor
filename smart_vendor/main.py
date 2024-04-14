@@ -9,7 +9,7 @@ from smart_vendor.routers.payments import router as payments_router
 app = FastAPI(title="Smart Vendor APIs", version='v1.0')
 
 
-@app.get("/", name='Docs', include_in_schema=False)
+@app.get("/", name='docs', include_in_schema=False)
 async def root():
     return RedirectResponse("/docs")
 
