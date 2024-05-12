@@ -57,16 +57,23 @@ class MpesaAuth(RequestSession):
                - access_token (str): This token is to be used with the Bearer header for further API calls to Mpesa.
         """
 
-        url = f"{self._base_url}/oauth/v1/generate?grant_type=client_credentials"
+        try:
 
-        req = self.session.get(url=url, auth=HTTPBasicAuth(self._consumer_key, self._secret_key))
-        print(req.json())
-        if req.status_code == 200:
-            self._access_token = req.json()['access_token']
-            return self._access_token
-        else:
-            self._access_token = None
-            return self._access_token
+            url = f"{self._base_url}/oauth/v1/generate?grant_type=client_credentials"
+            print(url)
+
+            req = self.session.get(url=url, auth=HTTPBasicAuth(self._consumer_key, self._secret_key))
+
+
+            if req.status_code == 200:
+                self._access_token = req.json()['access_token']
+                return self._access_token
+            else:
+                self._access_token = None
+                return self._access_token
+        except Exception as e:
+            print(e)
+            return None
 
     def security_credential(self):
         """
@@ -107,4 +114,4 @@ class MpesaAuth(RequestSession):
 
 if __name__ == '__main__':
     auth = MpesaAuth()
-    print(auth._base_url)
+    print(auth.obtain_auth_token())
