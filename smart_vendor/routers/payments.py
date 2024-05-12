@@ -81,7 +81,7 @@ async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Se
             phone_number=PhoneNumberUtils.clean(body.phone_number),
             description="Top up",
             reference_code=body.account_number,
-            callback_url=f"{api_base_url}/payments/test-callback/"
+            callback_url=f"{api_base_url}/payments/callback/"
         )
         data = schemas.StkRequestResponse(**dict(res))
         if data.response_code == "0":
@@ -117,8 +117,7 @@ async def send_stk_push(body: schemas.STKPushRequest, response: Response, db: Se
 @router.post("/payments/callback/")
 async def payment_callback(payload: schemas.StkPayload, response: Response, db:Session = Depends(get_db_session)):
     stk_callback = payload.Body.stkCallback
-    with(open('callback.json', 'w+')) as f:
-        f.write(json.dumps(payload.model_dump()))
+
     if str(stk_callback.ResultCode) == '0':
 
         processed_data = {
@@ -144,14 +143,32 @@ async def payment_callback(payload: schemas.StkPayload, response: Response, db:S
 
         }
         patch_schema = schemas.PaymentUpdate(**payload_schema)
-        txn = await db_patch_payment(
-            db=db,
-            txn_id=str(processed_data.get('CheckoutRequestId')),
-            payment=patch_schema
+        db_transaction = await db_get_payment(db=db, txn_id=stk_callback.CheckoutRequestID)
+        if db_transaction is not None:
+            if db_transaction.status == 'pending':
+                txn = await db_patch_payment(
+                    db=db,
+                    txn_id=str(processed_data.get('CheckoutRequestId')),
+                    payment=patch_schema
 
-        )
-        response.status_code = status.HTTP_200_OK
-        return txn
+                )
+                response.status_code = status.HTTP_200_OK
+                return {
+                    'message': 'Transaction updated successfully',
+                    'status': 'success'
+                }
+            else:
+                response.status_code = status.HTTP_200_OK
+                return {
+                    'message': 'Transaction already processed',
+                    'status': 'success'
+                }
+        else:
+            response.status_code = status.HTTP_404_NOT_FOUND
+            return {
+                'message': "No transactions with the supplied txn id found",
+                'status': 'failed'
+            }
 
     else:
         # payment failed
@@ -161,7 +178,7 @@ async def payment_callback(payload: schemas.StkPayload, response: Response, db:S
             'status': 'failed'
         }
 
-    return processed_data
+
 
 
 @router.post("/payments/test-callback/")

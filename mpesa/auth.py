@@ -25,11 +25,11 @@ class BearerTokenAuth(AuthBase):
 class MpesaAuth(RequestSession):
     def __init__(self):
         super().__init__()
-        self._env = os.environ.get("MPESA_ENV")
-        self._consumer_key = os.environ.get("MPESA_CONSUMER")
-        self._secret_key = os.environ.get('MPESA_SECRET')
-        self._lnm_passkey = os.environ.get('MPESA_LNM_PASSKEY')
-        self._short_code = os.environ.get("MPESA_SHORT_CODE")
+        self._env = os.getenv("MPESA_ENV")
+        self._consumer_key = os.getenv("MPESA_CONSUMER")
+        self._secret_key = os.getenv('MPESA_SECRET')
+        self._lnm_passkey = os.getenv('MPESA_LNM_PASSKEY')
+        self._short_code = os.getenv("MPESA_SHORT_CODE")
         self._access_token = None
         self._initiator_password = None
 
@@ -41,9 +41,6 @@ class MpesaAuth(RequestSession):
         elif self._env == "live":
             self.cert_path = os.path.join(BASE_DIR, 'mpesa/mpesa_prod_cert.cer')
             self._base_url = "https://api.safaricom.co.ke"
-
-        else:
-            self._base_url = None
 
     def obtain_auth_token(self):
         """To make Mpesa API calls, you will need to authenticate your app. This method is used to fetch the access token
@@ -60,9 +57,7 @@ class MpesaAuth(RequestSession):
                - access_token (str): This token is to be used with the Bearer header for further API calls to Mpesa.
         """
 
-        auth_endpoint = "/oauth/v1/generate?grant_type=client_credentials"
-
-        url = "{0}{1}".format(self._base_url, auth_endpoint)
+        url = f"{self._base_url}/oauth/v1/generate?grant_type=client_credentials"
 
         req = self.session.get(url=url, auth=HTTPBasicAuth(self._consumer_key, self._secret_key))
         print(req.json())
@@ -109,3 +104,7 @@ class MpesaAuth(RequestSession):
         else:
             # Handle the case where the public key is not RSA
             raise ValueError("Public key is not an RSA key")
+
+if __name__ == '__main__':
+    auth = MpesaAuth()
+    print(auth._base_url)

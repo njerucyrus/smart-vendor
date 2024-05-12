@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from sqlalchemy import select, desc
 from sqlalchemy.orm import Session
 from smart_vendor import schemas, models
@@ -29,6 +31,12 @@ async def db_update_payment(db: Session, txn_id: str, payment: schemas.PaymentUp
             setattr(instance, attr, value)
         db.commit()
         db.refresh(instance)
+        if instance.status == 'success':
+            account = db.query(models.UserAccount).filter(models.UserAccount.id == instance.account_id).first()
+            new_balance = float(account.available_balance) - float(payment.amount)
+            account.available_balance = Decimal(round(new_balance, 2))
+            db.commit()
+            db.refresh(account)
     return instance
 
 
@@ -39,6 +47,13 @@ async def db_patch_payment(db: Session, txn_id: str, payment: schemas.PaymentUpd
             setattr(instance, attr, value)
         db.commit()
         db.refresh(instance)
+        if instance.status == 'success':
+            account = db.query(models.UserAccount).filter(models.UserAccount.id == instance.account_id).first()
+            new_balance = float(account.available_balance) - float(payment.amount)
+            account.available_balance = Decimal(round(new_balance, 2))
+            db.commit()
+            db.refresh(account)
+
     return instance
 
 
