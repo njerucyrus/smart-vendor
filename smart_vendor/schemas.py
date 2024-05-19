@@ -62,6 +62,7 @@ class UserAccountRead(UserAccountBase):
     id: str
 
 
+
 class UserAccountPatch(BaseModel):
     available_balance: Union[float, None] = None
     location: Union[str, None] = None

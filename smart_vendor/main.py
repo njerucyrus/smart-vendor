@@ -13,9 +13,8 @@ app = FastAPI(title="Smart Vendor APIs", version='v1.0')
 async def root():
     return RedirectResponse("/docs")
 
-
-app.include_router(users_router, tags=["users"])
 app.include_router(user_accounts_router, tags=["accounts"])
+app.include_router(users_router, tags=["users"])
 app.include_router(payments_router, tags=["payment"])
 add_pagination(app)
 

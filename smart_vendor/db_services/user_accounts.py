@@ -55,7 +55,11 @@ async def db_get_user_account(db: Session, card_id: str):
 
 
 async def db_get_user_accounts(db: Session):
-    return paginate(db, select(models.UserAccount))
+    try:
+        return paginate(db, select(models.UserAccount))
+    except Exception as e:
+        print(e)
+        return None
 
 
 async def db_delete_user_account(db: Session, card_id: str):
