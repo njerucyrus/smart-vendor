@@ -1,0 +1,11 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "editor.formatOnSave": true,
+  "editor.fontSize": 16,
+  "editor.fontFamily": "Monaco",
+  "scm.inputFontFamily": "Monaco",
+  "window.zoomLevel": 1
+}
