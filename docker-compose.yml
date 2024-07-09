@@ -2,8 +2,7 @@ version: "3.8"
 
 services:
   db:
-    build: ./db
-    image: njerucyrus/smart_vendor:db
+    image: postgres:16
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
