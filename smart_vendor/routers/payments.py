@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from pprint import pprint
 
 from fastapi import APIRouter, Depends, Response, Request, HTTPException
@@ -26,6 +27,9 @@ load_dotenv()
 api_base_url = os.environ.get("API_BASE_URL")
 
 router = APIRouter()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @router.post("/payments/", response_model=schemas.PaymentRead)
@@ -125,6 +129,9 @@ async def payment_callback(
     request: Request, response: Response, db: Session = Depends(get_db_session)
 ):
     req_json = await request.json()
+
+    logger.info(f"Received data: {json.dumps(req_json, indent=4)}")
+
     with open("res_callback.json", "w+") as f:
         json.dump(req_json, f, indent=4)
     return {"data": "Processed successfully"}
