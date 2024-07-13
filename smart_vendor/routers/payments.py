@@ -140,11 +140,15 @@ async def payment_callback(
             "CheckoutRequestId": stk_callback.get("CheckoutRequestID"),
             "ResultCode": stk_callback.get("ResultCode"),
             "ResultDesk": stk_callback.get("ResultDesc"),
-            "MpesaReceiptNumber": stk_callback.get("CallbackMetadata")[1].get(
-                "Value", None
-            ),
-            "PhoneNumber": stk_callback.get("CallbackMetadata")[4].get("Value", None),
-            "Amount": stk_callback.get("CallbackMetadata")[0].get("Value", None),
+            "MpesaReceiptNumber": stk_callback.get("CallbackMetadata")
+            .get("Item")[1]
+            .get("Value", None),
+            "PhoneNumber": stk_callback.get("CallbackMetadata")
+            .get("Item")[4]
+            .get("Value", None),
+            "Amount": stk_callback.get("CallbackMetadata")
+            .get("Item")[0]
+            .get("Value", None),
         }
 
         payload_schema = {
