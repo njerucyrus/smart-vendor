@@ -128,45 +128,23 @@ async def send_stk_push(
 async def payment_callback(
     request: Request, response: Response, db: Session = Depends(get_db_session)
 ):
-    req_json = await request.json()
+    callback_data = await request.json()
 
-    logger.info(f"Received data: {json.dumps(req_json, indent=4)}")
+    logger.info(f"Received data: {json.dumps(callback_data, indent=4)}")
 
-    with open("res_callback.json", "w+") as f:
-        json.dump(req_json, f, indent=4)
-    return {"data": "Processed successfully"}
-    stk_callback = payload.Body.stkCallback
+    stk_callback = callback_data.get("Body").get("stkCallback")
 
-    if str(stk_callback.ResultCode) == "0":
+    if str(stk_callback.get("ResultCode")) == "0":
 
         processed_data = {
-            "CheckoutRequestId": stk_callback.CheckoutRequestID,
-            "ResultCode": stk_callback.ResultCode,
-            "ResultDesk": stk_callback.ResultDesc,
-            "MpesaReceiptNumber": next(
-                (
-                    str(item.Value)
-                    for item in stk_callback.CallbackMetadata.Item
-                    if item.Name == "MpesaReceiptNumber"
-                ),
-                None,
+            "CheckoutRequestId": stk_callback.get("CheckoutRequestID"),
+            "ResultCode": stk_callback.get("ResultCode"),
+            "ResultDesk": stk_callback.get("ResultDesc"),
+            "MpesaReceiptNumber": stk_callback.get("CallbackMetadata")[1].get(
+                "Value", None
             ),
-            "PhoneNumber": next(
-                (
-                    str(item.Value)
-                    for item in stk_callback.CallbackMetadata.Item
-                    if item.Name == "PhoneNumber"
-                ),
-                None,
-            ),
-            "Amount": next(
-                (
-                    round(float(item.Value), 2)
-                    for item in stk_callback.CallbackMetadata.Item
-                    if item.Name == "Amount"
-                ),
-                None,
-            ),
+            "PhoneNumber": stk_callback.get("CallbackMetadata")[4].get("Value", None),
+            "Amount": stk_callback.get("CallbackMetadata")[0].get("Value", None),
         }
 
         payload_schema = {
@@ -177,7 +155,7 @@ async def payment_callback(
         }
         patch_schema = schemas.PaymentUpdate(**payload_schema)
         db_transaction = await db_get_payment(
-            db=db, txn_id=stk_callback.CheckoutRequestID
+            db=db, txn_id=str(processed_data.get("CheckoutRequestId"))
         )
         if db_transaction is not None:
             if db_transaction.status == "pending":
