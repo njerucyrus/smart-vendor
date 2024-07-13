@@ -2,7 +2,7 @@ import json
 import os
 from pprint import pprint
 
-from fastapi import APIRouter, Depends, Response, HTTPException
+from fastapi import APIRouter, Depends, Response, Request, HTTPException
 from fastapi_pagination.links import Page
 from sqlalchemy.orm import Session
 from starlette import status
@@ -122,10 +122,11 @@ async def send_stk_push(
 
 @router.post("/payments/callback/")
 async def payment_callback(
-    payload: dict, response: Response, db: Session = Depends(get_db_session)
+    request: Request, response: Response, db: Session = Depends(get_db_session)
 ):
+    req_json = await request.json()
     with open("res_callback.json", "w+") as f:
-        f.write(json.dumps(payload))
+        json.dump(req_json, f, indent=4)
     return {"data": "Processed successfully"}
     stk_callback = payload.Body.stkCallback
 
