@@ -146,9 +146,9 @@ async def payment_callback(
             "PhoneNumber": stk_callback.get("CallbackMetadata")
             .get("Item")[4]
             .get("Value", None),
-            "Amount": stk_callback.get("CallbackMetadata")
-            .get("Item")[0]
-            .get("Value", None),
+            "Amount": round(
+                float(stk_callback.get("CallbackMetadata").get("Item")[0]), 2
+            ).get("Value", None),
         }
 
         payload_schema = {
